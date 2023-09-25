@@ -33,7 +33,6 @@ app.listen(port, () => {
 const User = require("./models/user");
 const Post = require("./models/post");
 
-
 const sendVerificationEmail = async (email, verificationToken) => {
   // crear el nodemailer
 
@@ -61,7 +60,6 @@ const sendVerificationEmail = async (email, verificationToken) => {
   }
 };
 
-
 //enpoint para registrar usuarios  en el backend
 
 app.post("/register", async (req, res) => {
@@ -85,18 +83,16 @@ app.post("/register", async (req, res) => {
 
     // enviar el correo electronico verificado
 
-    sendVerificationEmail(newUser.email,newUser.verificationToken);
+    sendVerificationEmail(newUser.email, newUser.verificationToken);
 
     res
       .status(200)
       .json({ message: "registro exitoso por favor revise su correo" });
-
   } catch (error) {
     console.log("error de registrar un usuario", error);
     res.status(500).json({ message: "error registrado en usuario" });
   }
 });
-
 
 app.get("/verify/:token", async (req, res) => {
   try {
@@ -117,7 +113,6 @@ app.get("/verify/:token", async (req, res) => {
     res.status(500).json({ message: "Verificacion por correo fallo" });
   }
 });
-
 
 const generateSecretKey = () => {
   const secretKey = crypto.randomBytes(32).toString("hex");
@@ -144,5 +139,57 @@ app.post("/login", async (req, res) => {
     res.status(200).json({ token });
   } catch (error) {
     res.status(500).json({ message: "error de inicio de sesion" });
+  }
+});
+
+//enpoint para acceder a todos los usuarios excepto lo que iniciaron sesión
+// porque ese usuario no se puede seguir a si mismo
+
+app.get("/user/:userId", (req, res) => {
+  try {
+    const loggedInUserId = req.params.userId;
+
+    User.find({ _id: { $ne: loggedInUserId } })
+      .then((users) => {
+        res.status(200).json(users);
+      })
+      .catch((error) => {
+        console.log("Error: ", error);
+        res.status(500).json("Error");
+      });
+  } catch (error) {
+    res.status(500).json({ message: " error al encontrar los usuarios" });
+  }
+});
+
+//endpoint para seguir un usuario en particular
+
+app.post("/follow", async (req, res) => {
+  const { currentUserId, selectedUserId } = req.body;
+
+  try {
+    await User.findByIdAndUpdate(selectedUserId, {
+      $push: { followers: currentUserId },
+    });
+
+    res.sendStatus(200);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "error al seguir a un persona" });
+  }
+});
+
+//endpoint para dejar de seguir un usuario en particular
+
+app.post("/users/unfollowing", async (res, req) => {
+  const { loggedInUserId, targetUserId } = req.body;
+
+  try {
+    await User.findByIdAndUpdate(targetUserId, {
+      $pull: { followers: loggedInUserId },
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "error al dejar de seguir una persona" });
   }
 });

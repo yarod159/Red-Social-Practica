@@ -11,6 +11,11 @@ import SearchScreen from "./screens/SearchScreen";
 import ActivityScreen from "./screens/ActivityScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { AntDesign } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
+import COLORS from "./consts/colors";
+
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const Tab = createBottomTabNavigator();
@@ -20,11 +25,8 @@ const StackNavigator = () => {
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
-          style: {
-            height: 30,
-            borderTopWidth: 0,
-            elevation: 0,
-          },
+          tabBarStyle: { backgroundColor: COLORS.huevo
+          ,marginHorizontal:90, borderRadius:10, top:-10 },
           tabBarShowLabel: false,
         }}
       >
@@ -37,9 +39,17 @@ const StackNavigator = () => {
             headerShown: false,
             tabBarIcon: ({ focused }) =>
               focused ? (
-                <SimpleLineIcons name="book-open" size={24} color="black" />
+                <SimpleLineIcons
+                  name="book-open"
+                  size={29}
+                  color={COLORS.primary}
+                />
               ) : (
-                <SimpleLineIcons name="book-open" size={24} color="red" />
+                <SimpleLineIcons
+                  name="book-open"
+                  size={29}
+                  color={COLORS.gris}
+                />
               ),
           }}
         />
@@ -53,42 +63,45 @@ const StackNavigator = () => {
             headerShown: false,
             tabBarIcon: ({ focused }) =>
               focused ? (
-                <SimpleLineIcons name="book-open" size={24} color="black" />
+                <Feather name="search" size={29} color={COLORS.primary} />
               ) : (
-                <SimpleLineIcons name="book-open" size={24} color="red" />
+                <Feather name="search" size={29} color={COLORS.gris} />
               ),
           }}
         />
 
-        <Tab.Screen
-          name="Share"
-          component={ShareScreen}
-          options={{
-            tabBarIcon: ({ focused }) => (
-              focused ? (
-                <SimpleLineIcons name="book-open" size={24} color="black" />
-                ) : (
-                <SimpleLineIcons name="book-open" size={24} color="red" />
-                ),
-              <View
-                style={{
-                  height: 60,
-                  width: 60,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  backgroundColor: "white",
-                  borderColor: "orange",
-                  borderWidth: 2,
-                  borderRadius: 30,
-                  top: -25,
-                  elevation: 5,
-                }}
-              >
-               
-              </View>
-            ),
+<Tab.Screen
+  name="Share"
+  component={ShareScreen}
+  options={{
+    tabBarIcon: ({ focused }) => (
+      <View style={{ top:-10, alignItems:"center", justifyContent:"center"}}>
+        <View style={{ top:18}}>
+        <AntDesign
+          name="plus"
+          size={29}
+          color={focused ? COLORS.white : COLORS.white}
+        />
+        </View>
+        <View
+          style={{
+            height: 60,
+            width: 60,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor:focused ? COLORS.primary : COLORS.gris,
+            borderColor: focused ? COLORS.primary : COLORS.white,
+            borderWidth: 2,
+            borderRadius: 30,
+            top: -25,
+            elevation: 5,
+            zIndex:-1,
           }}
         />
+      </View>
+    ),
+  }}
+/>
 
         <Tab.Screen
           name="Activity"
@@ -99,9 +112,9 @@ const StackNavigator = () => {
             headerShown: false,
             tabBarIcon: ({ focused }) =>
               focused ? (
-                <SimpleLineIcons name="book-open" size={24} color="black" />
+                <Feather name="bookmark" size={29} color={COLORS.primary} />
               ) : (
-                <SimpleLineIcons name="book-open" size={24} color="red" />
+                <Feather name="bookmark" size={29} color={COLORS.gris} />
               ),
           }}
         />
@@ -115,9 +128,13 @@ const StackNavigator = () => {
             headerShown: false,
             tabBarIcon: ({ focused }) =>
               focused ? (
-                <SimpleLineIcons name="book-open" size={24} color="black" />
+                <Ionicons
+                  name="person-outline"
+                  size={29}
+                  color={COLORS.primary}
+                />
               ) : (
-                <SimpleLineIcons name="book-open" size={24} color="red" />
+                <Ionicons name="person-outline" size={29} color={COLORS.gris} />
               ),
           }}
         />
