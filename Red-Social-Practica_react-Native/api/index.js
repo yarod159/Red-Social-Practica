@@ -225,7 +225,7 @@ app.post("/create-post", async (req, res) => {
 
 //EndPoint de dar like
 
-app.put("/post/:postId/:userId/like", async (res, req) => {
+app.put("/posts/:postId/:userId/like", async (req, res) => {
   try {
     const postId = req.params.postId;
     const userId = req.params.userId;
@@ -293,5 +293,35 @@ app.get("/get-posts", async (req, res) => {
     res
       .status(500)
       .json({ message: " ocurrion un error a la hora de obtener los post" });
+  }
+});
+
+
+//guardar un comentario de un post 
+
+app.post('/posts/:id/comments', async (req, res) => {
+  const postId = req.params.id;
+  const { userId, content } = req.body;
+
+  try {
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post no encontrado' });
+    }
+
+    const comment = {
+      user: userId,
+      content: content,
+      createdAt: Date.now(),
+    };
+
+    post.comments.push(comment);
+
+    await post.save();
+
+    res.status(200).json({ message: 'Comentario añadido con éxito', post });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error del servidor' });
   }
 });
