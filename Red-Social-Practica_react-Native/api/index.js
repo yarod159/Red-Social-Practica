@@ -142,6 +142,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
+//screen Favorite
 //enpoint para acceder a todos los usuarios excepto lo que iniciaron sesión
 // porque ese usuario no se puede seguir a si mismo
 
@@ -175,21 +176,122 @@ app.post("/follow", async (req, res) => {
     res.sendStatus(200);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "error al seguir a un persona" });
+    res.status(500).json({ message: "error a seguir una persona" });
   }
 });
 
 //endpoint para dejar de seguir un usuario en particular
 
-app.post("/users/unfollowing", async (res, req) => {
+app.post("/users/unfollow", async (req, res) => {
   const { loggedInUserId, targetUserId } = req.body;
 
   try {
     await User.findByIdAndUpdate(targetUserId, {
       $pull: { followers: loggedInUserId },
     });
+
+    res.status(200).json({ message: "dejar de seguir exitosamente " });
+  } catch (error) {
+    res.status(500).json({ message: "Error de seguir a un usuario" });
+  }
+});
+
+//
+//
+// SCREEN POST
+//
+//
+
+//endPoint crear una nueva publicacion
+app.post("/create-post", async (req, res) => {
+  try {
+    const { content, userId } = req.body;
+    const newPostData = {
+      user: userId,
+    };
+
+    if (content) {
+      newPostData.content = content;
+    }
+
+    const newPost = new Post(newPostData);
+
+    await newPost.save();
+    res.status(200).json({ message: "Post creado con exito" });
+  } catch (error) {
+    res.status(500).json({ message: "Error en la creacion de la publicacion" });
+  }
+});
+
+//EndPoint de dar like
+
+app.put("/post/:postId/:userId/like", async (res, req) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.params.userId;
+
+    const post = await Post.findById(postId).populate("user", "name");
+    const updatePost = await Post.findByIdAndUpdate(
+      postId,
+      { $addToSet: { likes: userId } },
+      { new: true }
+    );
+
+    if (!updatePost) {
+      return res.status(404).json({ message: "publicacion no encontrada" });
+    }
+
+    updatePost.user = post.user;
+
+    res.json(updatePost);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "error al dejar de seguir una persona" });
+    res.status(500).json({
+      message: "ocurrio un error en el backend a la hora de dar like",
+    });
+  }
+});
+
+//endPoint de dislike
+app.put("/posts/:postId/:userId/unlike", async (req, res) => {
+  const postId = req.params.postId;
+  const userId = req.params.userId;
+
+  try {
+    const post = await Post.findById(postId).populate("user", "name");
+
+    const updatedPost = await Post.findByIdAndUpdate(
+      postId,
+      { $pull: { likes: userId } },
+      { new: true }
+    );
+
+    updatedPost.user = post.user;
+
+    if (!updatedPost) {
+      return res.status(404).json({ message: "Post no encontrado" });
+    }
+
+    res.json(updatedPost);
+  } catch (error) {
+    console.error("Error unliking post:", error);
+    res
+      .status(500)
+      .json({ message: "ocurrio un error a la hora de dar dislike" });
+  }
+});
+
+//endPoint para obtener todas las publicaciones
+app.get("/get-posts", async (req, res) => {
+  try {
+    const posts = await Post.find()
+      .populate("user", "name")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(posts);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: " ocurrion un error a la hora de obtener los post" });
   }
 });
