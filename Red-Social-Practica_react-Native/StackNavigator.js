@@ -155,7 +155,7 @@ const StackNavigator = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Main"
+          name="Home"
           component={BottomTabs}
           options={{ headerShown: false }}
         />

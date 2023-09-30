@@ -15,6 +15,7 @@ import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesome } from "@expo/vector-icons";
 import axios from "axios";
+import { SERVER_IP } from '../utils/config.js';
 
 const RegisterScreen = () => {
   const [email, setEmail] = useState("");
@@ -31,7 +32,7 @@ const RegisterScreen = () => {
     };
 
     axios
-      .post('http://192.168.0.109:8000/register', user)
+      .post(`${SERVER_IP}/register`, user)
       .then((response) => {
         console.log(response);
         Alert.alert(

@@ -1,5 +1,6 @@
 import React, { useEffect, useContext, useState, useCallback } from "react";
 import { View, Image, Text, FlatList } from "react-native";
+import { Modal, TextInput, Button } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import jwt_decode from "jwt-decode";
 import { UserType } from "../UserContext";
@@ -8,10 +9,15 @@ import { AntDesign } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-
+import { TouchableOpacity } from "react-native";
+import { SERVER_IP } from '../utils/config.js';
 const HomeScreen = () => {
   const { userId, setUserId } = useContext(UserType);
   const [posts, setPosts] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [commentContent, setCommentContent] = useState("");
+  const [currentPostId, setCurrentPostId] = useState(null);
+  const [commentsVisible, setCommentsVisible] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -36,7 +42,7 @@ const HomeScreen = () => {
 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get("http://192.168.0.109:8000/get-posts");
+      const response = await axios.get(`${SERVER_IP}/get-posts`);
       setPosts(response.data);
     } catch (error) {
       console.log("error fetching posts", error);
@@ -45,7 +51,9 @@ const HomeScreen = () => {
 
   const handleLike = async (postId) => {
     try {
-      const response = await axios.put(  `http://192.168.0.109:8000/posts/${postId}/${userId}/like`
+      const response = await axios.put(
+        `${SERVER_IP}/posts/${postId}/${userId}/like`
+       
       );
       const updatedPost = response.data;
 
@@ -62,16 +70,37 @@ const HomeScreen = () => {
   const handleDislike = async (postId) => {
     try {
       const response = await axios.put(
-        `http://192.168.0.109:8000/posts/${postId}/${userId}/unlike`
+        `${SERVER_IP}/posts/${postId}/${userId}/unlike`
       );
       const updatedPost = response.data;
       const updatedPosts = posts.map((post) =>
         post._id === updatedPost._id ? updatedPost : post
       );
-    
+
       setPosts(updatedPosts);
     } catch (error) {
       console.error("Error unliking post:", error);
+    }
+  };
+
+  const handleComment = async (postId) => {
+    try {
+      const response = await axios.post(
+        `${SERVER_IP}/posts/${postId}/comments`,
+        {
+          userId: userId,
+          content: commentContent,
+        }
+      );
+      const updatedPost = response.data;
+      const updatedPosts = posts.map((post) =>
+        post._id === updatedPost._id ? updatedPost : post
+      );
+      setPosts(updatedPosts);
+      setModalVisible(false);
+      setCommentContent("");
+    } catch (error) {
+      console.error("Error commenting on post:", error);
     }
   };
 
@@ -95,7 +124,7 @@ const HomeScreen = () => {
             resizeMode: "contain",
           }}
           source={{
-            uri: "https://cdn-icons-png.flaticon.com/128/149/149071.png",
+            uri: "https://static.vecteezy.com/system/resources/previews/000/364/628/non_2x/vector-chef-avatar-illustration.jpg",
           }}
         />
       </View>
@@ -114,6 +143,12 @@ const HomeScreen = () => {
             marginTop: 15,
           }}
         >
+          <TouchableOpacity
+            onPress={() => setCommentsVisible(!commentsVisible)}
+          >
+            <FontAwesome name="comment-o" size={18} color="black" />
+          </TouchableOpacity>
+
           {item?.likes?.includes(userId) ? (
             <AntDesign
               onPress={() => handleDislike(item?._id)}
@@ -130,7 +165,15 @@ const HomeScreen = () => {
             />
           )}
 
-          <FontAwesome name="comment-o" size={18} color="black" />
+          <FontAwesome
+            onPress={() => {
+              setCurrentPostId(item._id);
+              setModalVisible(true);
+            }}
+            name="comment-o"
+            size={18}
+            color="black"
+          />
 
           <Ionicons name="share-social-outline" size={18} color="black" />
         </View>
@@ -139,16 +182,61 @@ const HomeScreen = () => {
           {item?.likes?.length} likes • {item?.replies?.length} reply
         </Text>
       </View>
+      {commentsVisible && (
+        <View>
+          {item.comments.map((comment) => (
+            <View key={comment._id} style={{ marginTop: 10 }}>
+              <Text style={{ fontWeight: "bold" }}>{comment.user.name}</Text>
+              <Text>{comment.content}</Text>
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 
   return (
-    <FlatList
-      style={{ marginTop: 50, flex: 1, backgroundColor: "white" }}
-      data={posts}
-      keyExtractor={(item) => item._id}
-      renderItem={renderItem}
-    />
+    <View style={{ marginTop: 10, flex: 1 }}>
+      <View style={{ marginTop: 20, alignItems: "center" }}>
+        <Image
+          style={{ width: 200, height: 50, resizeMode: "contain" }}
+          source={{
+            uri: "https://purppl.com/wp-content/uploads/2021/11/FoodShare-logo-green.png",
+          }}
+        />
+      </View>
+      <FlatList
+        data={posts}
+        keyExtractor={(item) => item._id}
+        renderItem={renderItem}
+      />
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <View style={{ backgroundColor: "white", padding: 20, width: "80%" }}>
+            <TextInput
+              placeholder="Escribe tu comentario..."
+              value={commentContent}
+              onChangeText={(text) => setCommentContent(text)}
+            />
+            <Button
+              title="Enviar comentario"
+              onPress={() => handleComment(currentPostId)}
+            />
+            <Button title="Cancelar" onPress={() => setModalVisible(false)} />
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 };
 

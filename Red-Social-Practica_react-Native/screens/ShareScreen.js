@@ -48,7 +48,7 @@ const ShareScreen = () => {
         <TextInput
           multiline
           textAlignVertical="top"
-          placeholder="Escribe tu receta"
+          placeholder="Esta es mi Recta de ..."
           style={{
             borderWidth: 0.2,
             borderRadius: 10,

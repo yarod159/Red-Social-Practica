@@ -325,3 +325,21 @@ app.post('/posts/:id/comments', async (req, res) => {
     res.status(500).json({ message: 'Error del servidor' });
   }
 });
+
+
+
+app.get("/profile/:userId", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    return res.status(200).json({ user });
+  } catch (error) {
+    res.status(500).json({ message: "error mientras buscas el profile" });
+  }
+});

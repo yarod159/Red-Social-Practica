@@ -14,6 +14,7 @@ import User from "../components/User";
 import COLORS from "../consts/colors";
 import { Feather } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
+import { SERVER_IP } from '../utils/config.js';
 
 const ActivityScreen = () => {
   const [selectedButton, setSelctedButton] = useState("people");
@@ -31,7 +32,7 @@ const ActivityScreen = () => {
       setUserId(userId);
 
       axios
-        .get(`http://192.168.0.109:8000/user/${userId}`)
+        .get(`${SERVER_IP}/user/${userId}`)
         .then((response) => {
           setUsers(response.data);
         })
