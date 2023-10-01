@@ -6,11 +6,15 @@ import { UserType } from "../UserContext.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import COLORS from "../consts/colors";
-
+import EditProfile from "./EditProfile.js";
 const ProfileScreen = () => {
   const [user, setUser] = useState("");
   const { userId, setUserId } = useContext(UserType);
   const navigation = useNavigation()
+  
+  
+  
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -94,6 +98,7 @@ const ProfileScreen = () => {
           }}
         >
           <Pressable
+          onPress={()=> navigation.navigate('EditProfile')}
             style={{
               flex: 1,
               justifyContent: "center",

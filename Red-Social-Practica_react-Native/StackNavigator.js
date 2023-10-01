@@ -15,6 +15,7 @@ import { AntDesign } from "@expo/vector-icons";
 import { Feather } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import COLORS from "./consts/colors";
+import EditProfile from "./screens/EditProfile";
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -25,8 +26,12 @@ const StackNavigator = () => {
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
-          tabBarStyle: { backgroundColor: COLORS.huevo
-          ,marginHorizontal:90, borderRadius:10, top:-10 },
+          tabBarStyle: {
+            backgroundColor: COLORS.huevo,
+            marginHorizontal: 90,
+            borderRadius: 10,
+            top: -10,
+          },
           tabBarShowLabel: false,
         }}
       >
@@ -70,38 +75,44 @@ const StackNavigator = () => {
           }}
         />
 
-<Tab.Screen
-  name="Share"
-  component={ShareScreen}
-  options={{
-    tabBarIcon: ({ focused }) => (
-      <View style={{ top:-10, alignItems:"center", justifyContent:"center"}}>
-        <View style={{ top:18}}>
-        <AntDesign
-          name="plus"
-          size={29}
-          color={focused ? COLORS.white : COLORS.white}
-        />
-        </View>
-        <View
-          style={{
-            height: 60,
-            width: 60,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor:focused ? COLORS.primary : COLORS.gris,
-            borderColor: focused ? COLORS.primary : COLORS.white,
-            borderWidth: 2,
-            borderRadius: 30,
-            top: -25,
-            elevation: 5,
-            zIndex:-1,
+        <Tab.Screen
+          name="Share"
+          component={ShareScreen}
+          options={{
+            tabBarIcon: ({ focused }) => (
+              <View
+                style={{
+                  top: -10,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <View style={{ top: 18 }}>
+                  <AntDesign
+                    name="plus"
+                    size={29}
+                    color={focused ? COLORS.white : COLORS.white}
+                  />
+                </View>
+                <View
+                  style={{
+                    height: 60,
+                    width: 60,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: focused ? COLORS.primary : COLORS.gris,
+                    borderColor: focused ? COLORS.primary : COLORS.white,
+                    borderWidth: 2,
+                    borderRadius: 30,
+                    top: -25,
+                    elevation: 5,
+                    zIndex: -1,
+                  }}
+                />
+              </View>
+            ),
           }}
         />
-      </View>
-    ),
-  }}
-/>
 
         <Tab.Screen
           name="Activity"
@@ -155,8 +166,14 @@ const StackNavigator = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Home"
+          name="Main"
           component={BottomTabs}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="EditProfile"
+          component={EditProfile}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

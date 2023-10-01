@@ -34,6 +34,10 @@ const userSchema = new mongoose.Schema({
     default: false,
   },
   verificationToken: String,
+  profileId : { 
+    type : mongoose.Schema.Types.ObjectId, 
+    ref : 'Profile' // referencia al modelo de perfil
+ }
 });
 
 const User = mongoose.model("User", userSchema);

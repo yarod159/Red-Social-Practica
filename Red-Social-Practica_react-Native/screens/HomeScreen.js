@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { TouchableOpacity } from "react-native";
 import { SERVER_IP } from '../utils/config.js';
+
 const HomeScreen = () => {
   const { userId, setUserId } = useContext(UserType);
   const [posts, setPosts] = useState([]);

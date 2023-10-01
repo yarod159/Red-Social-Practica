@@ -52,7 +52,7 @@ const LoginScreen = () => {
         console.log(response);
         const token = response.data.token;
         AsyncStorage.setItem("authToken", token);
-        navigation.navigate("Home");
+        navigation.navigate("Main");
       })
       .catch((error) => {
         console.log("error", error);
@@ -64,9 +64,9 @@ const LoginScreen = () => {
       >
         <View>
           <Image
-            style={{ width: 100, height: 150, resizeMode: "contain", top: 30 }}
+            style={{ width: 200, height: 150, resizeMode: "contain", top: 30 }}
             source={{
-              uri: "https://cdn-icons-png.flaticon.com/512/174/174852.png",
+              uri: "https://purppl.com/wp-content/uploads/2021/11/FoodShare-logo-green.png",
             }}
           ></Image>
         </View>
@@ -155,10 +155,10 @@ const LoginScreen = () => {
               marginTop: 20,
             }}
           >
-            <Text style={{ fontWeight: "bold", color: "#5AED7B" }}>
+            <Text style={{ fontWeight: "bold", color: "#000" }}>
               Mantenme conectado
             </Text>
-            <Text style={{ fontWeight: "bold", color: "#12DBFE" }}>
+            <Text style={{ fontWeight: "bold", color: "#000" }}>
               Olvide mi contraseña{" "}
             </Text>
           </View>

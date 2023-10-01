@@ -32,6 +32,8 @@ app.listen(port, () => {
 
 const User = require("./models/user");
 const Post = require("./models/post");
+const Profile = require('./models/profile');
+
 
 const sendVerificationEmail = async (email, verificationToken) => {
   // crear el nodemailer
@@ -343,3 +345,42 @@ app.get("/profile/:userId", async (req, res) => {
     res.status(500).json({ message: "error mientras buscas el profile" });
   }
 });
+//
+//ENDPORINT SCREEN PROFILE
+//
+
+app.post('/profile', async (req, res) => {
+  try {
+    const { userId, nameProfile, surname, telephone, presentation } = req.body;
+
+    // Busca al usuario por su ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Crea un nuevo perfil
+    const profile = new Profile({
+      nameProfile,
+      surname,
+      telephone,
+      presentation
+    });
+
+    // Guarda el perfil
+    await profile.save();
+
+    // Asigna el perfil al usuario
+    user.profileId = profile._id;
+    await user.save();
+
+    res.json({ message: 'Perfil guardado exitosamente', profile });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Hubo un error al guardar el perfil' });
+  }
+});
+
+//endPoint para alamcennar el Apellido
+//endPoint para alamcennar el Presentacion
+//endPoint para alamcennar el Telefono

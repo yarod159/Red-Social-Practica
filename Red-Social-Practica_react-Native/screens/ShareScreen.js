@@ -16,6 +16,7 @@ import axios from "axios"
 const ShareScreen = () => {
   const { userId, setUserId } = useContext(UserType);
   const [content, setContent] = useState("");
+  
   const handlePostSubmit = () => {
     const postData = {
       userId,

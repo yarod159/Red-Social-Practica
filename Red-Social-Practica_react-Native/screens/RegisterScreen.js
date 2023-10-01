@@ -60,9 +60,9 @@ const RegisterScreen = () => {
     >
       <View>
         <Image
-          style={{ width: 100, height: 150, resizeMode: "contain", top: 30 }}
+          style={{ width: 200, height: 150, resizeMode: "contain", top: 30 }}
           source={{
-            uri: "https://cdn-icons-png.flaticon.com/512/174/174852.png",
+            uri: "https://purppl.com/wp-content/uploads/2021/11/FoodShare-logo-green.png",
           }}
         ></Image>
       </View>
