@@ -9,6 +9,10 @@ const port = 8000;
 const cors = require("cors");
 app.use(cors());
 
+//encriptar contraseña
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
+//
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
@@ -32,12 +36,9 @@ app.listen(port, () => {
 
 const User = require("./models/user");
 const Post = require("./models/post");
-const Profile = require('./models/profile');
-
+const Profile = require("./models/profile");
 
 const sendVerificationEmail = async (email, verificationToken) => {
-  // crear el nodemailer
-
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -45,8 +46,6 @@ const sendVerificationEmail = async (email, verificationToken) => {
       pass: "ojdsrwqjhpocdzhh",
     },
   });
-
-  //redactar el mensaje de correo  que le va llegar al usuario
 
   const mailOptions = {
     from: "FoodShare.com",
@@ -57,8 +56,10 @@ const sendVerificationEmail = async (email, verificationToken) => {
 
   try {
     await transporter.sendMail(mailOptions);
+    console.log("Verification email sent successfully");
   } catch (error) {
-    console.log("error al enviar el correo ", error);
+    console.log("Error sending verification email:", error);
+    throw new Error("Failed to send verification email");
   }
 };
 
@@ -73,11 +74,14 @@ app.post("/register", async (req, res) => {
     if (existingUser) {
       return res.status(400).json({ message: " correo electronico ya existe" });
     }
-
+    // Encriptar la contraseña
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
     // no existe el usuario
 
-    const newUser = new User({ name, email, password });
+    const newUser = new User({ name, email, password: hashedPassword });
+
     //generar y verificar token
+
     newUser.verificationToken = crypto.randomBytes(20).toString("hex");
 
     //guardar el usuario en la base de datos
@@ -121,7 +125,20 @@ const generateSecretKey = () => {
   return secretKey;
 };
 
+const verifyUser = (req, res, next) => {
+  if (!req.user.verified) {
+    return res.status(401).json({ message: "Usuario no verificado" });
+  }
+  next();
+};
+
+app.get("/protected-route", verifyUser, (req, res) => {
+  // This route will only be accessible if the user is verified
+  res.status(200).json({ message: "Acceso permitido" });
+});
+
 const secretKey = generateSecretKey();
+
 
 app.post("/login", async (req, res) => {
   try {
@@ -133,8 +150,15 @@ app.post("/login", async (req, res) => {
       return res.status(404).json({ message: "email no encontrado" });
     }
 
-    if (user.password !== password) {
+    // Verificar la contraseña
+    const match = await bcrypt.compare(password, user.password);
+
+    if (!match) {
       return res.status(404).json({ message: "contraseña invalida" });
+    }
+
+    if (!user.verified) {
+      return res.status(401).json({ message: "Usuario no verificado" });
     }
 
     const token = jwt.sign({ userId: user._id }, secretKey);
@@ -298,17 +322,16 @@ app.get("/get-posts", async (req, res) => {
   }
 });
 
+//guardar un comentario de un post
 
-//guardar un comentario de un post 
-
-app.post('/posts/:id/comments', async (req, res) => {
+app.post("/posts/:id/comments", async (req, res) => {
   const postId = req.params.id;
   const { userId, content } = req.body;
 
   try {
     const post = await Post.findById(postId);
     if (!post) {
-      return res.status(404).json({ message: 'Post no encontrado' });
+      return res.status(404).json({ message: "Post no encontrado" });
     }
 
     const comment = {
@@ -321,14 +344,12 @@ app.post('/posts/:id/comments', async (req, res) => {
 
     await post.save();
 
-    res.status(200).json({ message: 'Comentario añadido con éxito', post });
+    res.status(200).json({ message: "Comentario añadido con éxito", post });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error del servidor' });
+    res.status(500).json({ message: "Error del servidor" });
   }
 });
-
-
 
 app.get("/profile/:userId", async (req, res) => {
   try {
@@ -349,14 +370,14 @@ app.get("/profile/:userId", async (req, res) => {
 //ENDPORINT SCREEN PROFILE
 //
 
-app.post('/profile', async (req, res) => {
+app.post("/profile", async (req, res) => {
   try {
     const { userId, nameProfile, surname, telephone, presentation } = req.body;
 
     // Busca al usuario por su ID
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
+      return res.status(404).json({ message: "Usuario no encontrado" });
     }
 
     // Crea un nuevo perfil
@@ -364,7 +385,7 @@ app.post('/profile', async (req, res) => {
       nameProfile,
       surname,
       telephone,
-      presentation
+      presentation,
     });
 
     // Guarda el perfil
@@ -374,10 +395,10 @@ app.post('/profile', async (req, res) => {
     user.profileId = profile._id;
     await user.save();
 
-    res.json({ message: 'Perfil guardado exitosamente', profile });
+    res.json({ message: "Perfil guardado exitosamente", profile });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Hubo un error al guardar el perfil' });
+    res.status(500).json({ message: "Hubo un error al guardar el perfil" });
   }
 });
 

@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   TextInput,
   Pressable,
+  Alert,
 } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from "react";
@@ -56,6 +57,13 @@ const LoginScreen = () => {
       })
       .catch((error) => {
         console.log("error", error);
+        if (error.response.data.message === "Usuario no verificado") {
+          // Mostrar un mensaje al usuario indicándole que necesita verificar su correo electrónico
+         
+        }
+        Alert.alert(
+          "Debes verificar tu correo"
+        );
       });
     };
     return (

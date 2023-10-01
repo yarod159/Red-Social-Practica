@@ -36,8 +36,8 @@ const RegisterScreen = () => {
       .then((response) => {
         console.log(response);
         Alert.alert(
-          "Registro exitoso",
-          "tu estas registrado sactifactoriamente "
+          "Verifica tu correo electronico"
+          
         );
         setName("");
         setEmail("");
