@@ -1,4 +1,11 @@
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+} from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { SERVER_IP } from "../utils/config.js";
@@ -7,13 +14,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import COLORS from "../consts/colors";
 import EditProfile from "./EditProfile.js";
+import Icon from "react-native-vector-icons/FontAwesome";
+
 const ProfileScreen = () => {
   const [user, setUser] = useState("");
   const { userId, setUserId } = useContext(UserType);
-  const navigation = useNavigation()
-  
-  
-  
+  const navigation = useNavigation();
+  const [userPosts, setUserPosts] = useState([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -29,6 +36,21 @@ const ProfileScreen = () => {
     fetchProfile();
   }, []);
 
+  useEffect(() => {
+    fetchProfile();
+    fetchUserPosts(); // Añade esta línea
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const response = await axios.get(`${SERVER_IP}/profile/${userId}`);
+      const { user } = response.data;
+      setUser(user);
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
   console.log(user);
 
   const logout = () => {
@@ -39,6 +61,16 @@ const ProfileScreen = () => {
     console.log("Cleared auth token");
     navigation.replace("Login");
   };
+
+  const fetchUserPosts = async () => {
+    try {
+      const response = await axios.get(`${SERVER_IP}/get-user-posts/${userId}`);
+      setUserPosts(response.data);
+    } catch (error) {
+      console.log("Error fetching user's posts", error);
+    }
+  };
+
   return (
     <View style={{ marginTop: 55, padding: 15 }}>
       <View>
@@ -52,7 +84,9 @@ const ProfileScreen = () => {
               backgroundColor: COLORS.primary,
             }}
           >
-            <Text style={{color:"white", fontWeight:"bold"}}>FoodShare</Text>
+            <Text style={{ color: "white", fontWeight: "bold" }}>
+              FoodShare
+            </Text>
           </View>
         </View>
 
@@ -98,7 +132,7 @@ const ProfileScreen = () => {
           }}
         >
           <Pressable
-          onPress={()=> navigation.navigate('EditProfile')}
+            onPress={() => navigation.navigate("EditProfile")}
             style={{
               flex: 1,
               justifyContent: "center",
@@ -128,6 +162,50 @@ const ProfileScreen = () => {
           </Pressable>
         </View>
       </View>
+      <FlatList
+        data={userPosts}
+        style={{
+          marginTop: 10,
+          position: "relative",
+          left: 20,
+          left: 0,
+          borderRadius: 25,
+        }}
+        contentContainerStyle={{
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        showsVerticalScrollIndicator={false}
+        keyExtractor={(post) => post._id}
+        renderItem={({ item }) => (
+          <View
+            style={{
+              backgroundColor: COLORS.huevo,
+              borderRadius: 25,
+              marginVertical: 10,
+            }}
+          >
+            <Image
+              style={{
+                width: 380,
+                height: 200,
+                resizeMode: "cover",
+                borderRadius: 25,
+              }}
+              source={{
+                uri: "https://www.cocinacaserayfacil.net/wp-content/uploads/2020/03/Recetas-faciles-de-cocinar-y-sobrevivir-en-casa-al-coronavirus_2.jpg",
+              }}
+            />
+            <Text style={{ marginHorizontal: 20, marginVertical: 20 }}>
+              {item.content}
+            </Text>
+
+            <Text style={{ marginHorizontal: 20}} >me gustas: {item.likes.length}</Text>
+
+            <Text  style={{ marginHorizontal: 20, marginBottom: 9 }}>comentarios: {item.comments.length}</Text>
+          </View>
+        )}
+      />
     </View>
   );
 };

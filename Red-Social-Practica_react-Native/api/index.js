@@ -261,7 +261,7 @@ app.put("/posts/:postId/:userId/like", async (req, res) => {
       postId,
       { $addToSet: { likes: userId } },
       { new: true }
-    );
+    ).populate('comments.user', 'name');
 
     if (!updatePost) {
       return res.status(404).json({ message: "publicacion no encontrada" });
@@ -290,7 +290,7 @@ app.put("/posts/:postId/:userId/unlike", async (req, res) => {
       postId,
       { $pull: { likes: userId } },
       { new: true }
-    );
+    ).populate('comments.user', 'name');
 
     updatedPost.user = post.user;
 
@@ -312,6 +312,7 @@ app.get("/get-posts", async (req, res) => {
   try {
     const posts = await Post.find()
       .populate("user", "name")
+      .populate("comments.user", "name")
       .sort({ createdAt: -1 });
 
     res.status(200).json(posts);
@@ -321,6 +322,22 @@ app.get("/get-posts", async (req, res) => {
       .json({ message: " ocurrion un error a la hora de obtener los post" });
   }
 });
+//
+//mostrar el post del usuario
+//
+app.get("/get-user-posts/:userId", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const posts = await Post.find({ user: userId })
+      .populate("user", "name")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(posts);
+  } catch (error) {
+    res.status(500).json({ message: "Ocurrió un error al obtener las publicaciones del usuario" });
+  }
+});
+
 
 //guardar un comentario de un post
 
@@ -374,34 +391,9 @@ app.post("/create-post", async (req, res) => {
   }
 });
 
-//EndPoint de dar like
 
-app.put("/posts/:postId/:userId/like", async (req, res) => {
-  try {
-    const postId = req.params.postId;
-    const userId = req.params.userId;
 
-    const post = await Post.findById(postId).populate("user", "name");
-    const updatePost = await Post.findByIdAndUpdate(
-      postId,
-      { $addToSet: { likes: userId } },
-      { new: true }
-    );
 
-    if (!updatePost) {
-      return res.status(404).json({ message: "publicacion no encontrada" });
-    }
-
-    updatePost.user = post.user;
-
-    res.json(updatePost);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      message: "ocurrio un error en el backend a la hora de dar like",
-    });
-  }
-});
 
 //elimaninar un post
 app.delete("/posts/:postId", async (req, res) => {
@@ -439,23 +431,26 @@ app.delete("/posts/:postId", async (req, res) => {
 });
 
 //obtner la fecha y hora del post creado
-app.get("/posts/:postId", async (req, res) => {
+// Endpoint to get the creation date of a post
+// Endpoint to get the creation time of a post for a specific user and allow others to view it
+app.get("/posts/:postId/creation-time", async (req, res) => {
   try {
     const postId = req.params.postId;
 
-    // Buscar el post
+    // Find the post by its ID
     const post = await Post.findById(postId);
 
-    // Verificar si el post existe
     if (!post) {
-      return res.status(404).json({ message: "Post no encontrado" });
+      return res.status(404).json({ message: "Post not found" });
     }
 
-    // Devolver la fecha y hora de la publicación
-    res.status(200).json({ message: "Fecha y hora de la publicación obtenida con éxito", date: post.createdAt });
+    // Get the creation time of the post
+    const creationTime = post.createdAt;
+
+    res.status(200).json({ creationTime });
   } catch (error) {
-    console.log("Error al obtener la fecha y hora del post:", error);
-    res.status(500).json({ message: "Error al obtener la fecha y hora del post" });
+    console.error("Error retrieving creation time:", error);
+    res.status(500).json({ message: "Error retrieving creation time" });
   }
 });
 

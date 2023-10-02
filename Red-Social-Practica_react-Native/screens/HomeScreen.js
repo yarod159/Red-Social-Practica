@@ -7,14 +7,15 @@ import { UserType } from "../UserContext";
 import axios from "axios";
 import { AntDesign } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
-import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { TouchableOpacity } from "react-native";
 import { SERVER_IP } from "../utils/config.js";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import COLORS from "../consts/colors";
 import { Feather } from "@expo/vector-icons";
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons } from "@expo/vector-icons";
+import { Entypo } from "@expo/vector-icons";
+
 
 const HomeScreen = () => {
   const { userId, setUserId } = useContext(UserType);
@@ -24,8 +25,10 @@ const HomeScreen = () => {
   const [currentPostId, setCurrentPostId] = useState(null);
   const [commentsVisible, setCommentsVisible] = useState(false);
   const [bookmarkedPostId, setBookmarkedPostId] = useState(null);
-  const [postDate, setPostDate] = useState("");
-
+  const [postDate, setPostDate] = useState("null");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedPostId, setSelectedPostId] = useState(null);
+  
   useEffect(() => {
     const fetchUsers = async () => {
       const token = await AsyncStorage.getItem("authToken");
@@ -47,10 +50,24 @@ const HomeScreen = () => {
     }, [])
   );
 
+  useEffect(() => {
+    fetchPosts();
+  }, [searchTerm]);
+
   const fetchPosts = async () => {
     try {
       const response = await axios.get(`${SERVER_IP}/get-posts`);
-      setPosts(response.data);
+      let fetchedPosts = response.data;
+
+      // Filtrarmos las publicaciones si hay un término de búsqueda
+      if (searchTerm.startsWith("#")) {
+        const hashtag = searchTerm.slice(1); // Eliminar el símbolo '#'
+        fetchedPosts = fetchedPosts.filter((post) =>
+          post.content.includes(`#${hashtag}`)
+        );
+      }
+
+      setPosts(fetchedPosts);
     } catch (error) {
       console.log("error fetching posts", error);
     }
@@ -110,6 +127,7 @@ const HomeScreen = () => {
       console.error("Error commenting on post:", error);
     }
   };
+
   const handleDelete = (postId) => {
     Alert.alert(
       "Eliminar post - Al pasar 24 hrs no se podras eliminar",
@@ -143,25 +161,6 @@ const HomeScreen = () => {
       ]
     );
   };
-  
-  const fetchPostDate = async (postId) => {
-    try {
-      const response = await axios.get(`${SERVER_IP}/posts/${postId}`);
-      if (response.status === 200) {
-        console.log("Fecha y hora de la publicación obtenida con éxito:", response.data.date);
-        setPostDate(response.data.date); // Guarda la fecha en el estado
-      } else {
-        console.log("Post no encontrado");
-      }
-    } catch (error) {
-      console.log("Error al obtener la fecha y hora del post:", error);
-    }
-  };
-  
-  useEffect(() => {
-    fetchPostDate(currentPostId);
-  }, [currentPostId]);
-  
 
   ///
   ///
@@ -204,6 +203,7 @@ const HomeScreen = () => {
             <Text style={{ fontSize: 15, fontWeight: "bold", marginBottom: 4 }}>
               {item?.user?.name}
             </Text>
+
             {userId === item?.user?._id && (
               <View style={{ position: "absolute", left: 300 }}>
                 <MaterialCommunityIcons
@@ -232,8 +232,8 @@ const HomeScreen = () => {
                 }}
               />
             </View>
-           
-            <View style={{marginTop:50}}>
+
+            <View style={{ marginTop: 50 }}>
               <Text>{item?.content}</Text>
             </View>
           </View>
@@ -246,9 +246,16 @@ const HomeScreen = () => {
             }}
           >
             <TouchableOpacity
-              onPress={() => setCommentsVisible(!commentsVisible)}
+              onPress={() => {
+                setCommentsVisible(!commentsVisible);
+                setSelectedPostId(item._id); // Añade esta línea
+              }}
             >
-              <MaterialIcons name="keyboard-arrow-down" size={29} color="black" />
+              <MaterialIcons
+                name="keyboard-arrow-down"
+                size={29}
+                color="black"
+              />
             </TouchableOpacity>
 
             {item?.likes?.includes(userId) ? (
@@ -268,15 +275,15 @@ const HomeScreen = () => {
             )}
 
             <Feather
-              onPress={() => {
-                if (bookmarkedPostId === item._id) {
-                  // Si el post ya está marcado, desmarca el post
-                  setBookmarkedPostId(null);
-                } else {
-                  // Si el post no está marcado, marca el post
-                  setBookmarkedPostId(item._id);
-                }
-              }}
+             onPress={() => {
+              if (bookmarkedPostId === item._id) {
+                // Si el post ya está marcado, desmarca el post
+                setBookmarkedPostId(null);
+              } else {
+                // Si el post no está marcado, marca el post
+                setBookmarkedPostId(item._id);
+              }
+            }}
               name="bookmark"
               size={24}
               color={bookmarkedPostId === item._id ? "red" : "black"}
@@ -291,22 +298,24 @@ const HomeScreen = () => {
               size={18}
               color="black"
             />
-             <Text style={{color:"red"}}>Fecha: {postDate}</Text>
-
           </View>
-         
+
           <Text style={{ marginTop: 7, color: "gray" }}>
-            {item?.likes?.length} likes • {item?.replies?.length} reply
+            {item?.likes?.length} me gusta • {item.comments?.length || 0}{" "}
+            {item.comments?.length <= 1 ? "comentario" : "comentarios"}
           </Text>
         </View>
       </View>
       <View>
-        {commentsVisible && (
-          <View>
+        {commentsVisible && item._id === selectedPostId && (
+          <View style={{ marginLeft: 30 }}>
             {item.comments.map((comment) => (
-              <View key={comment._id} style={{ marginTop: 10 }}>
-                <Text style={{ fontWeight: "bold" }}>{comment.user.name}</Text>
-                <Text>{comment.content}</Text>
+              <View
+                key={comment._id}
+                style={{ marginTop: 10, flexDirection: "row" }}
+              >
+                <Text style={{ fontWeight: "bold" }}> {comment.user.name}</Text>
+                <Text style={{ marginLeft: 10 }}>{comment.content}</Text>
               </View>
             ))}
           </View>
@@ -315,16 +324,47 @@ const HomeScreen = () => {
     </View>
   );
 
+  ///
+  ///
+  ///
+  ///return
   return (
     <View style={{ marginTop: 10, flex: 1 }}>
-      <View style={{ marginTop: 20, alignItems: "center" }}>
+      <View
+        style={{
+          marginTop: 20,
+          alignItems: "center",
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+      >
         <Image
           style={{ width: 200, height: 50, resizeMode: "contain" }}
           source={{
             uri: "https://purppl.com/wp-content/uploads/2021/11/FoodShare-logo-green.png",
           }}
         />
+        <Entypo
+          style={{ position: "relative" }}
+          name="magnifying-glass"
+          size={18}
+          color={COLORS.gris}
+        />
+        <TextInput
+          style={{
+            borderWidth: 0.9,
+            borderRadius: 10,
+            width: 200,
+            height: 35,
+            borderColor: COLORS.gris,
+            position: "relative",
+            right: 25,
+            paddingLeft: 28,
+          }}
+          onChangeText={(text) => setSearchTerm(text)}
+        />
       </View>
+
       <FlatList
         data={posts}
         keyExtractor={(item) => item._id}

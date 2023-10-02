@@ -16,6 +16,9 @@ import { Feather } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import COLORS from "./consts/colors";
 import EditProfile from "./screens/EditProfile";
+import FavoriteScreen from "./screens/FavoriteScreen";
+
+
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -60,17 +63,17 @@ const StackNavigator = () => {
         />
 
         <Tab.Screen
-          name="Search"
-          component={SearchScreen}
+          name="Favorite"
+          component={FavoriteScreen}
           options={{
-            tabBarLabel: "Search",
+            tabBarLabel: "Favorite",
             tabBarLabelStyle: { color: "black" },
             headerShown: false,
             tabBarIcon: ({ focused }) =>
               focused ? (
-                <Feather name="search" size={29} color={COLORS.primary} />
+                <Feather name="bookmark" size={29} color={COLORS.primary} />
               ) : (
-                <Feather name="search" size={29} color={COLORS.gris} />
+                <Feather name="bookmark" size={29} color={COLORS.gris} />
               ),
           }}
         />
@@ -123,9 +126,9 @@ const StackNavigator = () => {
             headerShown: false,
             tabBarIcon: ({ focused }) =>
               focused ? (
-                <Feather name="bookmark" size={29} color={COLORS.primary} />
+                <AntDesign name="staro" size={29} color={COLORS.primary} />
               ) : (
-                <Feather name="bookmark" size={29} color={COLORS.gris} />
+                <AntDesign name="staro" size={29} color={COLORS.gris} />
               ),
           }}
         />
