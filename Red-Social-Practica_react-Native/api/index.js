@@ -351,6 +351,115 @@ app.post("/posts/:id/comments", async (req, res) => {
   }
 });
 
+
+
+//endPoint crear una nueva publicacion
+app.post("/create-post", async (req, res) => {
+  try {
+    const { content, userId } = req.body;
+    const newPostData = {
+      user: userId,
+    };
+
+    if (content) {
+      newPostData.content = content;
+    }
+
+    const newPost = new Post(newPostData);
+
+    await newPost.save();
+    res.status(200).json({ message: "Post creado con exito" });
+  } catch (error) {
+    res.status(500).json({ message: "Error en la creacion de la publicacion" });
+  }
+});
+
+//EndPoint de dar like
+
+app.put("/posts/:postId/:userId/like", async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.params.userId;
+
+    const post = await Post.findById(postId).populate("user", "name");
+    const updatePost = await Post.findByIdAndUpdate(
+      postId,
+      { $addToSet: { likes: userId } },
+      { new: true }
+    );
+
+    if (!updatePost) {
+      return res.status(404).json({ message: "publicacion no encontrada" });
+    }
+
+    updatePost.user = post.user;
+
+    res.json(updatePost);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "ocurrio un error en el backend a la hora de dar like",
+    });
+  }
+});
+
+//elimaninar un post
+app.delete("/posts/:postId", async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.body.userId;
+
+    // Buscar el post
+    const post = await Post.findById(postId);
+
+    // Verificar si el post existe
+    if (!post) {
+      return res.status(404).json({ message: "Post no encontrado" });
+    }
+
+   // Verificar si han pasado 24 horas desde que se creó el post
+   const postAgeInHours = (Date.now() - post.createdAt) / 1000 / 60 / 60;
+   if (postAgeInHours > 24) {
+     return res.status(403).json({ message: "No puedes eliminar un post después de 24 horas" });
+   }
+
+    // Verificar si el usuario es el creador del post
+    if (post.user.toString() !== userId) {
+      return res.status(403).json({ message: "No tienes permiso para eliminar este post" });
+    }
+
+    // Eliminar el post
+    await Post.findByIdAndRemove(postId);
+
+    res.status(200).json({ message: "Post eliminado con éxito" });
+  } catch (error) {
+    console.log("Error al eliminar el post:", error);
+    res.status(500).json({ message: "Error al eliminar el post" });
+  }
+});
+
+//obtner la fecha y hora del post creado
+app.get("/posts/:postId", async (req, res) => {
+  try {
+    const postId = req.params.postId;
+
+    // Buscar el post
+    const post = await Post.findById(postId);
+
+    // Verificar si el post existe
+    if (!post) {
+      return res.status(404).json({ message: "Post no encontrado" });
+    }
+
+    // Devolver la fecha y hora de la publicación
+    res.status(200).json({ message: "Fecha y hora de la publicación obtenida con éxito", date: post.createdAt });
+  } catch (error) {
+    console.log("Error al obtener la fecha y hora del post:", error);
+    res.status(500).json({ message: "Error al obtener la fecha y hora del post" });
+  }
+});
+
+
 app.get("/profile/:userId", async (req, res) => {
   try {
     const userId = req.params.userId;

@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState, useCallback } from "react";
-import { View, Image, Text, FlatList } from "react-native";
+import { View, Image, Text, FlatList, Alert } from "react-native";
 import { Modal, TextInput, Button } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import jwt_decode from "jwt-decode";
@@ -10,7 +10,11 @@ import { FontAwesome } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { TouchableOpacity } from "react-native";
-import { SERVER_IP } from '../utils/config.js';
+import { SERVER_IP } from "../utils/config.js";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import COLORS from "../consts/colors";
+import { Feather } from "@expo/vector-icons";
+import { MaterialIcons } from '@expo/vector-icons';
 
 const HomeScreen = () => {
   const { userId, setUserId } = useContext(UserType);
@@ -19,6 +23,8 @@ const HomeScreen = () => {
   const [commentContent, setCommentContent] = useState("");
   const [currentPostId, setCurrentPostId] = useState(null);
   const [commentsVisible, setCommentsVisible] = useState(false);
+  const [bookmarkedPostId, setBookmarkedPostId] = useState(null);
+  const [postDate, setPostDate] = useState("");
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -54,7 +60,6 @@ const HomeScreen = () => {
     try {
       const response = await axios.put(
         `${SERVER_IP}/posts/${postId}/${userId}/like`
-       
       );
       const updatedPost = response.data;
 
@@ -100,99 +105,213 @@ const HomeScreen = () => {
       setPosts(updatedPosts);
       setModalVisible(false);
       setCommentContent("");
+      fetchPosts();
     } catch (error) {
       console.error("Error commenting on post:", error);
     }
   };
+  const handleDelete = (postId) => {
+    Alert.alert(
+      "Eliminar post - Al pasar 24 hrs no se podras eliminar",
+      "¿Estás seguro de que deseas eliminar este post?  ",
 
+      [
+        {
+          text: "No",
+          style: "cancel",
+        },
+        {
+          text: "Sí",
+          onPress: async () => {
+            try {
+              // Obtén el token del almacenamiento local
+              const token = await AsyncStorage.getItem("authToken");
+
+              // Haz una petición DELETE al endpoint de eliminación de posts
+              await axios.delete(`${SERVER_IP}/posts/${postId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+                data: { userId: userId },
+              });
+
+              // Actualiza la lista de posts después de eliminar el post
+              fetchPosts();
+            } catch (error) {
+              console.log("Error al eliminar el post:", error);
+            }
+          },
+        },
+      ]
+    );
+  };
+  
+  const fetchPostDate = async (postId) => {
+    try {
+      const response = await axios.get(`${SERVER_IP}/posts/${postId}`);
+      if (response.status === 200) {
+        console.log("Fecha y hora de la publicación obtenida con éxito:", response.data.date);
+        setPostDate(response.data.date); // Guarda la fecha en el estado
+      } else {
+        console.log("Post no encontrado");
+      }
+    } catch (error) {
+      console.log("Error al obtener la fecha y hora del post:", error);
+    }
+  };
+  
+  useEffect(() => {
+    fetchPostDate(currentPostId);
+  }, [currentPostId]);
+  
+
+  ///
+  ///
+  ///Desing
   const renderItem = ({ item }) => (
     <View
       style={{
         padding: 15,
         borderColor: "#D0D0D0",
         borderTopWidth: 1,
-        flexDirection: "row",
+        flexDirection: "column",
         gap: 10,
         marginVertical: 10,
       }}
     >
-      <View>
-        <Image
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            resizeMode: "contain",
-          }}
-          source={{
-            uri: "https://static.vecteezy.com/system/resources/previews/000/364/628/non_2x/vector-chef-avatar-illustration.jpg",
-          }}
-        />
-      </View>
+      <View style={{ flexDirection: "row" }}>
+        <View>
+          <Image
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              resizeMode: "contain",
+            }}
+            source={{
+              uri: "https://static.vecteezy.com/system/resources/previews/000/364/628/non_2x/vector-chef-avatar-illustration.jpg",
+            }}
+          />
+        </View>
 
-      <View>
-        <Text style={{ fontSize: 15, fontWeight: "bold", marginBottom: 4 }}>
-          {item?.user?.name}
-        </Text>
-        <Text>{item?.content}</Text>
-
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 10,
-            marginTop: 15,
-          }}
-        >
-          <TouchableOpacity
-            onPress={() => setCommentsVisible(!commentsVisible)}
+        <View style={{ flexDirection: "column" }}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginLeft: 10,
+            }}
           >
-            <FontAwesome name="comment-o" size={18} color="black" />
-          </TouchableOpacity>
+            <Text style={{ fontSize: 15, fontWeight: "bold", marginBottom: 4 }}>
+              {item?.user?.name}
+            </Text>
+            {userId === item?.user?._id && (
+              <View style={{ position: "absolute", left: 300 }}>
+                <MaterialCommunityIcons
+                  onPress={() => handleDelete(item?._id)}
+                  name="delete-clock-outline"
+                  size={24}
+                  color={COLORS.gris}
+                />
+              </View>
+            )}
+          </View>
+          <View style={{ flexDirection: "column" }}>
+            <View>
+              <Image
+                style={{
+                  width: 380,
+                  height: 200,
+                  resizeMode: "contain",
+                  top: 38,
+                  position: "relative",
+                  left: -40,
+                  borderRadius: 20,
+                }}
+                source={{
+                  uri: "https://www.cocinacaserayfacil.net/wp-content/uploads/2020/03/Recetas-faciles-de-cocinar-y-sobrevivir-en-casa-al-coronavirus_2.jpg",
+                }}
+              />
+            </View>
+           
+            <View style={{marginTop:50}}>
+              <Text>{item?.content}</Text>
+            </View>
+          </View>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              marginTop: 15,
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => setCommentsVisible(!commentsVisible)}
+            >
+              <MaterialIcons name="keyboard-arrow-down" size={29} color="black" />
+            </TouchableOpacity>
 
-          {item?.likes?.includes(userId) ? (
-            <AntDesign
-              onPress={() => handleDislike(item?._id)}
-              name="heart"
-              size={18}
-              color="red"
+            {item?.likes?.includes(userId) ? (
+              <AntDesign
+                onPress={() => handleDislike(item?._id)}
+                name="heart"
+                size={18}
+                color="red"
+              />
+            ) : (
+              <AntDesign
+                onPress={() => handleLike(item?._id)}
+                name="hearto"
+                size={18}
+                color="black"
+              />
+            )}
+
+            <Feather
+              onPress={() => {
+                if (bookmarkedPostId === item._id) {
+                  // Si el post ya está marcado, desmarca el post
+                  setBookmarkedPostId(null);
+                } else {
+                  // Si el post no está marcado, marca el post
+                  setBookmarkedPostId(item._id);
+                }
+              }}
+              name="bookmark"
+              size={24}
+              color={bookmarkedPostId === item._id ? "red" : "black"}
             />
-          ) : (
-            <AntDesign
-              onPress={() => handleLike(item?._id)}
-              name="hearto"
+
+            <FontAwesome
+              onPress={() => {
+                setCurrentPostId(item._id);
+                setModalVisible(true);
+              }}
+              name="comment-o"
               size={18}
               color="black"
             />
-          )}
+             <Text style={{color:"red"}}>Fecha: {postDate}</Text>
 
-          <FontAwesome
-            onPress={() => {
-              setCurrentPostId(item._id);
-              setModalVisible(true);
-            }}
-            name="comment-o"
-            size={18}
-            color="black"
-          />
-
-          <Ionicons name="share-social-outline" size={18} color="black" />
+          </View>
+         
+          <Text style={{ marginTop: 7, color: "gray" }}>
+            {item?.likes?.length} likes • {item?.replies?.length} reply
+          </Text>
         </View>
-
-        <Text style={{ marginTop: 7, color: "gray" }}>
-          {item?.likes?.length} likes • {item?.replies?.length} reply
-        </Text>
       </View>
-      {commentsVisible && (
-        <View>
-          {item.comments.map((comment) => (
-            <View key={comment._id} style={{ marginTop: 10 }}>
-              <Text style={{ fontWeight: "bold" }}>{comment.user.name}</Text>
-              <Text>{comment.content}</Text>
-            </View>
-          ))}
-        </View>
-      )}
+      <View>
+        {commentsVisible && (
+          <View>
+            {item.comments.map((comment) => (
+              <View key={comment._id} style={{ marginTop: 10 }}>
+                <Text style={{ fontWeight: "bold" }}>{comment.user.name}</Text>
+                <Text>{comment.content}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
     </View>
   );
 

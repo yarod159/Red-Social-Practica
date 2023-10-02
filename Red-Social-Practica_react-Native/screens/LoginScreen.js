@@ -15,7 +15,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
-
+import { SERVER_IP } from "../utils/config.js";
 
 
 const LoginScreen = () => {
@@ -48,18 +48,36 @@ const LoginScreen = () => {
     };
 
     axios
-      .post("http://192.168.0.109:8000/login", user)
+      .post(`${SERVER_IP}/login`, user)
       .then((response) => {
         console.log(response);
         const token = response.data.token;
         AsyncStorage.setItem("authToken", token);
         navigation.navigate("Main");
+
+        fetch("/protected-route")
+        .then((response) => {
+          if (response.ok) {
+            // User is verified, allow access to restricted features or content
+            // Display the response message or perform additional actions
+            console.log("User is verified");
+          } else {
+            // User is not verified, handle accordingly
+            // Display a message or redirect to a different page
+            console.log("User is not verified");
+          }
+        })
+        .catch((error) => {
+          // Handle any errors that occurred during the request
+          // Display an error message or perform error handling
+          console.log("Error occurred:", error);
+        });
       })
       .catch((error) => {
         console.log("error", error);
         if (error.response.data.message === "Usuario no verificado") {
           // Mostrar un mensaje al usuario indicándole que necesita verificar su correo electrónico
-         
+          console.log("Usuario no verificado");
         }
         Alert.alert(
           "Debes verificar tu correo"
