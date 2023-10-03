@@ -25,6 +25,7 @@ const EditProfile = ({ navigation, route }) => {
   const { userId, setUserId } = useContext(UserType);
   const [isIconVisible, setIsIconVisible] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
+  
 
 
   async function saveProfile() {

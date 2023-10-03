@@ -15,7 +15,8 @@ import COLORS from "../consts/colors";
 import { Feather } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Entypo } from "@expo/vector-icons";
-
+import { useNavigation } from "@react-navigation/native";
+import UserProfile from "./UserProfile";
 
 const HomeScreen = () => {
   const { userId, setUserId } = useContext(UserType);
@@ -28,7 +29,8 @@ const HomeScreen = () => {
   const [postDate, setPostDate] = useState("null");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPostId, setSelectedPostId] = useState(null);
-  
+  const navigation = useNavigation();
+
   useEffect(() => {
     const fetchUsers = async () => {
       const token = await AsyncStorage.getItem("authToken");
@@ -162,6 +164,11 @@ const HomeScreen = () => {
     );
   };
 
+  const handleNameClick = (userId) => {
+    // Navega a la pantalla de perfil del usuario
+    navigation.navigate("UserProfile", { userId: userId });
+  };
+
   ///
   ///
   ///Desing
@@ -200,7 +207,10 @@ const HomeScreen = () => {
               marginLeft: 10,
             }}
           >
-            <Text style={{ fontSize: 15, fontWeight: "bold", marginBottom: 4 }}>
+            <Text
+              style={{ fontSize: 15, fontWeight: "bold", marginBottom: 4 }}
+              onPress={() => handleNameClick(item?.user?._id)}
+            >
               {item?.user?.name}
             </Text>
 
@@ -221,14 +231,14 @@ const HomeScreen = () => {
                 style={{
                   width: 380,
                   height: 200,
-                  resizeMode: "contain",
+                  resizeMode: "cover",
                   top: 38,
                   position: "relative",
                   left: -40,
                   borderRadius: 20,
                 }}
                 source={{
-                  uri: "https://www.cocinacaserayfacil.net/wp-content/uploads/2020/03/Recetas-faciles-de-cocinar-y-sobrevivir-en-casa-al-coronavirus_2.jpg",
+                  uri: item?.photo,
                 }}
               />
             </View>
@@ -275,15 +285,15 @@ const HomeScreen = () => {
             )}
 
             <Feather
-             onPress={() => {
-              if (bookmarkedPostId === item._id) {
-                // Si el post ya está marcado, desmarca el post
-                setBookmarkedPostId(null);
-              } else {
-                // Si el post no está marcado, marca el post
-                setBookmarkedPostId(item._id);
-              }
-            }}
+              onPress={() => {
+                if (bookmarkedPostId === item._id) {
+                  // Si el post ya está marcado, desmarca el post
+                  setBookmarkedPostId(null);
+                } else {
+                  // Si el post no está marcado, marca el post
+                  setBookmarkedPostId(item._id);
+                }
+              }}
               name="bookmark"
               size={24}
               color={bookmarkedPostId === item._id ? "red" : "black"}

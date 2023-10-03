@@ -6,7 +6,7 @@ import {
   View,
   FlatList,
 } from "react-native";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { SERVER_IP } from "../utils/config.js";
 import { UserType } from "../UserContext.js";
@@ -15,6 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 import COLORS from "../consts/colors";
 import EditProfile from "./EditProfile.js";
 import Icon from "react-native-vector-icons/FontAwesome";
+import { useFocusEffect } from '@react-navigation/native';
 
 const ProfileScreen = () => {
   const [user, setUser] = useState("");
@@ -40,6 +41,15 @@ const ProfileScreen = () => {
     fetchProfile();
     fetchUserPosts(); // Añade esta línea
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+      fetchUserPosts();
+    }, [])
+  );
+
+  
 
   const fetchProfile = async () => {
     try {
@@ -174,6 +184,7 @@ const ProfileScreen = () => {
         contentContainerStyle={{
           alignItems: "center",
           justifyContent: "center",
+          paddingBottom: 200, 
         }}
         showsVerticalScrollIndicator={false}
         keyExtractor={(post) => post._id}
@@ -193,7 +204,7 @@ const ProfileScreen = () => {
                 borderRadius: 25,
               }}
               source={{
-                uri: "https://www.cocinacaserayfacil.net/wp-content/uploads/2020/03/Recetas-faciles-de-cocinar-y-sobrevivir-en-casa-al-coronavirus_2.jpg",
+                uri: item?.photo,
               }}
             />
             <Text style={{ marginHorizontal: 20, marginVertical: 20 }}>

@@ -3,10 +3,29 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
+const multer = require('multer');//subir la foto
+var path = require('path');
 
 const app = express();
 const port = 8000;
 const cors = require("cors");
+
+
+
+
+
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, 'uploads')) // Aquí es donde se guardarán las imágenes
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname) // Aquí puedes definir cómo quieres nombrar tus archivos
+  }
+})
+
+const upload = multer({storage: storage});
+
+// configurar Multer en tu servidor Express.js:
 app.use(cors());
 
 //encriptar contraseña
@@ -229,15 +248,21 @@ app.post("/users/unfollow", async (req, res) => {
 //
 
 //endPoint crear una nueva publicacion
+
 app.post("/create-post", async (req, res) => {
   try {
-    const { content, userId } = req.body;
+    const { content, userId, photoUrl } = req.body; // Añade photoUrl aquí
     const newPostData = {
       user: userId,
     };
 
     if (content) {
       newPostData.content = content;
+    }
+
+    // Guarda photoUrl en lugar de req.file.path
+    if (photoUrl) {
+      newPostData.photo = photoUrl;
     }
 
     const newPost = new Post(newPostData);
@@ -249,6 +274,34 @@ app.post("/create-post", async (req, res) => {
   }
 });
 
+
+
+/*
+app.post("/create-post", upload.single('photo'), async (req, res) => {
+  try {
+    const { content, userId } = req.body;
+    const newPostData = {
+      user: userId,
+    };
+
+    if (content) {
+      newPostData.content = content;
+    }
+
+    // acceder a req.file para obtener información sobre el archivo subido
+    if (req.file) {
+      newPostData.photo = req.file.path;
+    }
+
+    const newPost = new Post(newPostData);
+
+    await newPost.save();
+    res.status(200).json({ message: "Post creado con exito" });
+  } catch (error) {
+    res.status(500).json({ message: "Error en la creacion de la publicacion" });
+  }
+});
+*/
 //EndPoint de dar like
 
 app.put("/posts/:postId/:userId/like", async (req, res) => {
@@ -504,6 +557,12 @@ app.post("/profile", async (req, res) => {
     console.error(error);
     res.status(500).json({ message: "Hubo un error al guardar el perfil" });
   }
+});
+
+
+//subida de la imagen
+app.get('/image/:filename', function (req, res) {
+  res.sendFile(__dirname + '/uploads/' + req.params.filename);
 });
 
 //endPoint para alamcennar el Apellido

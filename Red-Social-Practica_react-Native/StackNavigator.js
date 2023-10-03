@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import COLORS from "./consts/colors";
 import EditProfile from "./screens/EditProfile";
 import FavoriteScreen from "./screens/FavoriteScreen";
+import UserProfile from "./screens/UserProfile";
 
 
 
@@ -177,6 +178,11 @@ const StackNavigator = () => {
         <Stack.Screen
           name="EditProfile"
           component={EditProfile}
+          options={{ headerShown: false }}
+        />
+         <Stack.Screen
+          name="UserProfile"
+          component={UserProfile}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
