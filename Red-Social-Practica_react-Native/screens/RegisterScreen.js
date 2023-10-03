@@ -23,35 +23,51 @@ const RegisterScreen = () => {
   const navigation = useNavigation();
   const [name, setName] = useState("");
   
+
+  const checkUserExists = () => {
+    axios
+      .get(`${SERVER_IP}/userExists?name=${name}`)
+      .then((response) => {
+        if (response.data.exists) {
+          Alert.alert("El nombre de usuario ya existe");
+        } else {
+          handleRegister();
+        }
+      })
+      .catch((error) => {
+        console.log("error", error);
+        Alert.alert(
+          "Ya existe este  nombre de usuario",
+         
+        );
+      });
+  };
+  
   const handleRegister = () => {
-   
     const user = {
       name: name,
       email: email,
       password: password,
     };
-
+  
     axios
       .post(`${SERVER_IP}/register`, user)
       .then((response) => {
         console.log(response);
-        Alert.alert(
-          "Verifica tu correo electronico"
-          
-        );
+        Alert.alert("Verifica tu correo electronico");
         setName("");
         setEmail("");
         setPassword("");
       })
       .catch((error) => {
+        console.log("error", error);
         Alert.alert(
           "Registro fallido",
           "Error en el registro: " + error.message
         );
-       
-        console.log(error.toJSON())
       });
   };
+  
 
 
   return (
@@ -177,7 +193,7 @@ const RegisterScreen = () => {
         <View style={{ marginTop: 40 }} />
 
         <Pressable
-          onPress={handleRegister}
+          onPress={checkUserExists}
           style={{
             width: 200,
             borderRadius: 10,

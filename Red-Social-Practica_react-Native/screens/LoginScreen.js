@@ -57,7 +57,7 @@ const LoginScreen = () => {
         const token = response.data.token;
         AsyncStorage.setItem("authToken", token);
         navigation.navigate("Main");
-
+        
         fetch("/protected-route")
           .then((response) => {
             if (response.ok) {
